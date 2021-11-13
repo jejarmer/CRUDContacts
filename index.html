@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacts</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <h1>Contacts</h1>
+    <div class="content">
+      <form id="add-contacts-form">
+        <input type="text" name="name" placeholder="Contact Name" />
+        <input type="text" name="phone" placeholder="Contact Phone Number" />
+        <!--<button onClick="refresh(this)">Add Contact</button>-->
+        <button>Add Contact</button>
+      </form>
+      <ul id="contacts-list"></ul>
+    </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        addDoc,
+        doc,
+        deleteDoc,
+        query,
+        where,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/9.4.1/firebase-firestore.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDV6Wwwp3e7ncl8rfY-7wKrOXygP4uyxiA",
+        authDomain: "contacts-8c418.firebaseapp.com",
+        projectId: "contacts-8c418",
+        storageBucket: "contacts-8c418.appspot.com",
+        messagingSenderId: "464901482430",
+        appId: "1:464901482430:web:605f368769931b071cfbef",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      async function getContacts(db) {
+        const contactsCol = collection(db, "contacts");
+        const contactsSnapshot = await getDocs(contactsCol);
+        const contactsList = contactsSnapshot.docs.map((doc) => doc.data());
+        return contactsList;
+      }
+
+      const contactsList = document.querySelector("#contacts-list");
+      const form = document.querySelector("#add-contacts-form");
+
+      function renderContacts(dc) {
+        let li = document.createElement("li");
+        let name = document.createElement("span");
+        let phone = document.createElement("span");
+        let cross = document.createElement("div");
+
+        li.setAttribute("data-id", dc.id);
+        name.textContent = dc.data().name;
+        phone.textContent = dc.data().phone;
+        cross.textContent = "x";
+
+        li.appendChild(name);
+        li.appendChild(phone);
+        li.appendChild(cross);
+
+        contactsList.appendChild(li);
+
+        cross.addEventListener("click", (e) => {
+          e.stopPropagation();
+          let id = e.target.parentElement.getAttribute("data-id");
+          deleteDoc(doc(db, "contacts", id));
+          //refresh(this)
+        });
+      }
+
+      const contacts = getDocs(collection(db, "contacts")).then((snapshot) => {
+        snapshot.forEach((doc) => {
+          renderContacts(doc);
+        });
+      });
+
+      /*
+        const q = query(collection(db, "restaurant"), where("city", "==", "hays"));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            console.log(doc.id, "=>", doc.data())
+        })
+
+        const upDoc = doc(db, "contacts", "2elmkG17fiP05M3oteXx");
+
+        updateDoc(upDoc, {
+            name: "James A."
+        })
+        */
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const docRef = addDoc(collection(db, "contacts"), {
+          phone: form.phone.value,
+          name: form.name.value,
+        });
+      });
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
